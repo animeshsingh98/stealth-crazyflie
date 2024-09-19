@@ -1,19 +1,18 @@
-import logging
 import sys
 import time
-import threading
+import multiprocessing
 
 import cflib.crtp
 from cflib.crazyflie import Crazyflie
 from cflib.crazyflie.log import LogConfig
 from cflib.crazyflie.syncCrazyflie import SyncCrazyflie
-from cflib.positioning.motion_commander import MotionCommander
-from cflib.utils import uri_helper
 from audio_logger import audio_recording
 import crazyflie_interface
+from time import sleep
 
 
 def crazyflie_control():
+    print("Crazyflie started")
     cflib.crtp.init_drivers()
 
     with SyncCrazyflie(crazyflie_interface.URI, cf=Crazyflie(rw_cache='./cache')) as scf:
@@ -35,16 +34,17 @@ def crazyflie_control():
     logconf.start()
     crazyflie_interface.move_box_limit(scf)
     logconf.stop()
+    print("Crazyflie stopped")
 
+if __name__ == "__main__":
+    # Create threads for PyAudio and Crazyflie
+    audio_thread = multiprocessing.Process(target=audio_recording)
+    crazyflie_thread = multiprocessing.Process(target=crazyflie_control)
 
-# Create threads for PyAudio and Crazyflie
-audio_thread = threading.Thread(target=audio_recording())
-crazyflie_thread = threading.Thread(target=crazyflie_control)
+    # Start both threads
+    audio_thread.start()
+    crazyflie_thread.start()
 
-# Start both threads
-audio_thread.start()
-crazyflie_thread.start()
-
-# Wait for both threads to complete (optional)
-audio_thread.join()
-crazyflie_thread.join()
+    # Wait for both threads to complete (optional)
+    audio_thread.join()
+    crazyflie_thread.join()
