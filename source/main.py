@@ -6,7 +6,7 @@ import cflib.crtp
 from cflib.crazyflie import Crazyflie
 from cflib.crazyflie.log import LogConfig
 from cflib.crazyflie.syncCrazyflie import SyncCrazyflie
-from audio_logger import audio_recording
+from audio_noise_removal import audio_recording
 import crazyflie_interface
 from time import sleep
 
@@ -27,14 +27,14 @@ def crazyflie_control():
         scf.cf.log.add_config(logconf)
         logconf.data_received_cb.add_callback(crazyflie_interface.log_pos_callback)
 
-    if not crazyflie_interface.deck_attached_event.wait(timeout=5):
-        print('No flow deck detected!')
-        sys.exit(1)
+        if not crazyflie_interface.deck_attached_event.wait(timeout=5):
+            print('No flow deck detected!')
+            sys.exit(1)
 
-    logconf.start()
-    crazyflie_interface.move_box_limit(scf)
-    logconf.stop()
-    print("Crazyflie stopped")
+        logconf.start()
+        crazyflie_interface.move_box_limit(scf)
+        logconf.stop()
+        print("Crazyflie stopped")
 
 if __name__ == "__main__":
     # Create threads for PyAudio and Crazyflie

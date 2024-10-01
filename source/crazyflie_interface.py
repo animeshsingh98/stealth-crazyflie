@@ -64,7 +64,7 @@ def take_off_simple(scf):
         mc.stop()
 
 def log_pos_callback(timestamp, data, logconf):
-    print(data)
+    #print(data)
     global position_estimate
     position_estimate[0] = data['stateEstimate.x']
     position_estimate[1] = data['stateEstimate.y']
@@ -72,7 +72,7 @@ def log_pos_callback(timestamp, data, logconf):
 
 def param_deck_flow(_, value_str):
     value = int(value_str)
-    print(value)
+    #print(value)
     if value:
         deck_attached_event.set()
         print('Deck is attached!')
@@ -95,10 +95,11 @@ if __name__ == '__main__':
         scf.cf.log.add_config(logconf)
         logconf.data_received_cb.add_callback(log_pos_callback)
 
-    if not deck_attached_event.wait(timeout=5):
-        print('No flow deck detected!')
-        sys.exit(1)
+        if not deck_attached_event.wait(timeout=5):
+            print('No flow deck detected!')
+            sys.exit(1)
 
-    logconf.start()
-    move_box_limit(scf)
-    logconf.stop()
+        logconf.start()
+        # move_box_limit(scf)
+        take_off_simple(scf)
+        logconf.stop()
