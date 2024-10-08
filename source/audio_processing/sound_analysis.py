@@ -4,7 +4,7 @@ import librosa
 import librosa.display
 
 # Load the audio file
-audio_file = 'drone_without_ambient.wav'  # Replace with your file
+audio_file = 'real_time_filtered_output.wav'  # Replace with your file
 y, sr = librosa.load(audio_file, sr=None)
 
 # Plot the waveform

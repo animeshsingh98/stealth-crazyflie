@@ -2,13 +2,14 @@ import pyaudio
 import wave
 import matplotlib.pyplot as plt
 from scipy.signal import butter, lfilter
+import numpy as np
 
 CHUNK = 1024
 FORMAT = pyaudio.paInt16
 CHANNELS = 1
 RATE = 44100
 RECORD_SECONDS = 10
-WAVE_OUTPUT_FILENAME = "audio_processing/output.wav"
+WAVE_OUTPUT_FILENAME = "output.wav"
 
 
 def audio_recording(filename=WAVE_OUTPUT_FILENAME):
@@ -19,6 +20,16 @@ def audio_recording(filename=WAVE_OUTPUT_FILENAME):
                     rate=RATE,
                     input=True,
                     frames_per_buffer=CHUNK)
+
+    print("Recording and filtering in real-time...")
+
+    # Collect noise profile for the first second
+    print("Capturing ambient noise profile...")
+    noise_frames = []
+
+    for _ in range(int(RATE / CHUNK * NOISE_PROFILE_DURATION)):
+        data = stream.read(CHUNK)
+        noise_frames.append(np.frombuffer(data, dtype=np.int16))
 
     print("* recording")
 
