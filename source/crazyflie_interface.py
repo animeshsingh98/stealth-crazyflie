@@ -2,6 +2,7 @@ import logging
 import sys
 import time
 from threading import Event
+from logging_config import setup_logging
 
 import cflib.crtp
 from cflib.crazyflie import Crazyflie
@@ -10,15 +11,14 @@ from cflib.crazyflie.syncCrazyflie import SyncCrazyflie
 from cflib.positioning.motion_commander import MotionCommander
 from cflib.utils import uri_helper
 
+logger = setup_logging(__name__)
+logging.basicConfig(level=logging.ERROR)
+
 URI = uri_helper.uri_from_env(default='radio://0/80/2M/E7E7E7E7E7')
+deck_attached_event = Event()
 
 DEFAULT_HEIGHT = 0.5
 BOX_LIMIT = 0.5
-
-deck_attached_event = Event()
-
-logging.basicConfig(level=logging.ERROR)
-
 position_estimate = [0, 0]
 
 
@@ -28,12 +28,7 @@ def move_box_limit(scf):
         body_y_cmd = 0.1
         max_vel = 0.2
 
-        while (1):
-            #if position_estimate[0] > BOX_LIMIT:
-            #    mc.start_back()
-            #elif position_estimate[0] < -BOX_LIMIT:
-            #    mc.start_forward()
-
+        while True:
             if position_estimate[0] > BOX_LIMIT:
                 body_x_cmd = -max_vel
             elif position_estimate[0] < -BOX_LIMIT:
@@ -58,21 +53,22 @@ def move_linear_simple(scf):
         mc.forward(0.5)
         time.sleep(1)
 
+
 def take_off_simple(scf):
     with MotionCommander(scf, default_height=DEFAULT_HEIGHT) as mc:
         time.sleep(3)
         mc.stop()
 
+
 def log_pos_callback(timestamp, data, logconf):
-    #print(data)
     global position_estimate
-    position_estimate[0] = data['stateEstimate.x']
-    position_estimate[1] = data['stateEstimate.y']
+    position_estimate[0] = round(data['stateEstimate.x'], 3)
+    position_estimate[1] = round(data['stateEstimate.y'], 3)
+    logger.info(f'Position estimate: {position_estimate}')
 
 
 def param_deck_flow(_, value_str):
     value = int(value_str)
-    #print(value)
     if value:
         deck_attached_event.set()
         print('Deck is attached!')

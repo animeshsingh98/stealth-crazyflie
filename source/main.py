@@ -6,8 +6,10 @@ import cflib.crtp
 from cflib.crazyflie import Crazyflie
 from cflib.crazyflie.log import LogConfig
 from cflib.crazyflie.syncCrazyflie import SyncCrazyflie
-from source.audio_processing.audio_noise_removal import audio_recording
+from audio_logger_nr import audio_recording
 import crazyflie_interface
+import logging
+logging.basicConfig(level=logging.ERROR)
 
 
 def crazyflie_control():

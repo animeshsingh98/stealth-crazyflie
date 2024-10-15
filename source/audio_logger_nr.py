@@ -1,15 +1,35 @@
 import pyaudio
-import wave
-import matplotlib.pyplot as plt
-from scipy.signal import butter, lfilter
 import numpy as np
+import noisereduce as nr
+import soundfile as sf
+from logging_config import setup_logging
+import logging
+from scipy.signal import butter, lfilter
 
 CHUNK = 1024
 FORMAT = pyaudio.paInt16
 CHANNELS = 1
 RATE = 44100
-RECORD_SECONDS = 10
+RECORD_SECONDS = 20
 WAVE_OUTPUT_FILENAME = "output.wav"
+NOISE_PROFILE_DURATION = 2
+logger = setup_logging(__name__)
+logging.basicConfig(level=logging.ERROR)
+
+
+# Butterworth filter for noise reduction (optional)
+def butter_bandpass(lowcut, highcut, fs, order=5):
+    nyq = 0.5 * fs
+    low = lowcut / nyq
+    high = highcut / nyq
+    b, a = butter(order, [low, high], btype='band')
+    return b, a
+
+
+def bandpass_filter(data, lowcut, highcut, fs, order=5):
+    b, a = butter_bandpass(lowcut, highcut, fs, order=order)
+    y = lfilter(b, a, data)
+    return y
 
 
 def audio_recording(filename=WAVE_OUTPUT_FILENAME):
@@ -31,13 +51,28 @@ def audio_recording(filename=WAVE_OUTPUT_FILENAME):
         data = stream.read(CHUNK)
         noise_frames.append(np.frombuffer(data, dtype=np.int16))
 
+    # Combine the noise frames to create the noise profile
+    noise_profile = np.hstack(noise_frames)
+
+    # Real-time recording and filtering
+    filtered_audio = []
+
     print("* recording")
 
     frames = []
 
     for i in range(0, int(RATE / CHUNK * RECORD_SECONDS)):
         data = stream.read(CHUNK)
-        frames.append(data)
+        audio_chunk = np.frombuffer(data, dtype=np.int16)
+
+        # Apply noise reduction to the current chunk
+        reduced_chunk = nr.reduce_noise(y=audio_chunk, sr=RATE, y_noise=noise_profile)
+        reduced_chunk = bandpass_filter(reduced_chunk, lowcut=4000, highcut=16000, fs=RATE)
+        rms = np.sqrt(np.mean(np.square(reduced_chunk)))
+        logger.info(f"sound level {20 * np.log10(rms)}")
+
+        # Store the filtered audio
+        filtered_audio.extend(reduced_chunk)
 
     print("* done recording")
 
@@ -45,9 +80,8 @@ def audio_recording(filename=WAVE_OUTPUT_FILENAME):
     stream.close()
     p.terminate()
 
-    wf = wave.open(WAVE_OUTPUT_FILENAME, 'wb')
-    wf.setnchannels(CHANNELS)
-    wf.setsampwidth(p.get_sample_size(FORMAT))
-    wf.setframerate(RATE)
-    wf.writeframes(b''.join(frames))
-    wf.close()
+    # Convert the filtered audio into a numpy array
+    filtered_audio = np.array(filtered_audio, dtype=np.int16)
+
+    # Save the filtered audio to a .wav file
+    sf.write(WAVE_OUTPUT_FILENAME, filtered_audio, RATE)
