@@ -4,7 +4,7 @@ import librosa
 import librosa.display
 
 # Load the audio file
-audio_file = 'drone_motor.wav'  # Replace with your file
+audio_file = 'ambient_noise.wav'  # Replace with your file
 y, sr = librosa.load(audio_file, sr=None)
 
 # Plot the waveform
