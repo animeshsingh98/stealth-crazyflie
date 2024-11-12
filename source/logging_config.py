@@ -1,6 +1,4 @@
 import logging
-import boto3
-from datetime import datetime
 
 
 def setup_logging(name):
