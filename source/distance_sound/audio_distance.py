@@ -10,14 +10,9 @@ from cflib.utils import uri_helper
 import pyaudio
 import numpy as np
 import noisereduce as nr
-from logging_config import setup_logging
-import logging
 from scipy.signal import butter, lfilter
 import soundfile as sf
 
-
-logger = setup_logging(__name__)
-logging.basicConfig(level=logging.ERROR)
 
 URI = uri_helper.uri_from_env(default='radio://0/80/2M/E7E7E7E7E7')
 
@@ -83,7 +78,7 @@ def audio_recording():
         filtered_audio = np.array(filtered_audio, dtype=np.int16)
 
         # Save the filtered audio to a .wav file
-        output_file = 'wall_close.wav'
+        output_file = 'free_50cm.wav'
         sf.write(output_file, filtered_audio, RATE)
 
         print(f"Filtered audio saved to {output_file}")

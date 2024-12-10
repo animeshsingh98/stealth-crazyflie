@@ -3,6 +3,7 @@ import matplotlib.pyplot as plt
 from scipy.io import wavfile
 from scipy.fft import fft, fftfreq
 
+
 def compute_power_spectrum(file_path, start_time=5, end_time=6):
     # Load the WAV file
     sample_rate, data = wavfile.read(file_path)
@@ -25,6 +26,7 @@ def compute_power_spectrum(file_path, start_time=5, end_time=6):
     freqs = np.fft.fftfreq(N, 1 / sample_rate)[:N // 2]
     return freqs, power_spectrum
 
+
 def analyze_spectrum_difference(file1, file2, start_time=3, end_time=4):
     # Compute power spectra for both files
     freqs1, power_spectrum1 = compute_power_spectrum(file1, start_time, end_time)
@@ -35,7 +37,7 @@ def analyze_spectrum_difference(file1, file2, start_time=3, end_time=4):
 
     # Perform FFT on the power difference spectrum
     N = len(power_diff)
-    fft_diff = fft(power_diff)
+    fft_diff = fft(power_diff[:11025])
     freqs_diff = fftfreq(N, freqs1[1] - freqs1[0])[:N // 2]
     fft_diff_magnitude = np.abs(fft_diff[:N // 2])
     print(max(fft_diff_magnitude))
@@ -49,7 +51,7 @@ def analyze_spectrum_difference(file1, file2, start_time=3, end_time=4):
     plt.ylabel("Power Difference")
     plt.legend()
     plt.grid()
-    plt.xlim(4000, 16000)  # Adjust the frequency range as needed
+    plt.xlim(4000, 8000)  # Adjust the frequency range as needed
 
     # Plot the FFT of the power spectrum difference
     plt.subplot(2, 1, 2)
@@ -64,7 +66,7 @@ def analyze_spectrum_difference(file1, file2, start_time=3, end_time=4):
     plt.tight_layout()
     plt.show()
 
-# Usage
-file1 = 'wall_cropped.wav'
-file2 = 'wall_close_cropped.wav'
+
+file1 = './wall/wall_50cm.wav'
+file2 = './free/free_50cm.wav'
 analyze_spectrum_difference(file1, file2)
